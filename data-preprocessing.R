@@ -6,6 +6,7 @@ nrn.dir = "/home/zack/Desktop/Lab_Work/Data/neuron_morphologies/Zebrafish/aligne
 nrns <- read.neurons(nrn.dir, format="swc")
 
 ### Get class labels ###
+lbl.path <- "/home/zack/Desktop/Lab_Work/Data/neuron_morphologies/Zebrafish/aligned_040120/test_NBLAST_labels.csv"
 
 # Look at the neurons to make sure they look ok
 open3d()
@@ -15,7 +16,7 @@ plot3d(nrns, soma=TRUE)
 nrns.dps <- dotprops(nrns, k=5, resample=1, OmitFailures=TRUE)
 
 # Get metadata of dotprops for later
-lbl_df <- as.data.frame(nrns.dps)
+lbl.df <- as.data.frame(nrns.dps)
 
 # Calculate NBLAST scores and cluster
 nrn.scores <- nblast_allbyall(nrns.dps)
@@ -27,7 +28,10 @@ plot(d.nrns, main="Heiarchical Clustering of Neurons split into 10 classes", lea
 
 # Get the labels for the neurons based on NBLAST
 lbls <-cutree(nrn.clust, k=10)
-lbl_df$nblast_cluster <- lbls
+lbl.df$nblast_cluster <- lbls
+
+# Save the labels 
+write.csv(lbl.df, lbl.path)
 
 ### Get graph representations ###
 graph.dir <- "/home/zack/Desktop/Lab_Work/Data/neuron_morphologies/Zebrafish/aligned_040120/Zbrain_neurons_graphs"
@@ -38,7 +42,7 @@ for(nrn in nrns) {
   nrn.name <- nrn$NeuronName
   nrn.graph <- as.ngraph(nrn)
   graph.path <- paste(graph.dir, "/", nrn.name, sep="")
-  igraph::write_graph(test, graph.path, format="gml")
+  igraph::write_graph(nrn.graph, graph.path, format="gml")
 }
 
 
