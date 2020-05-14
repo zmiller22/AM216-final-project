@@ -13,6 +13,8 @@ import os
 import networkx as nx 
 import tensorflow as tf
 import dgl
+
+from classifier import GCN
 #%% Set paths to data and labels
 data_path = "/home/zack/Desktop/Lab_Work/Data/neuron_morphologies/Zebrafish/aligned_040120/Zbrain_neurons_graphs"
 lbl_path = "/home/zack/Desktop/Lab_Work/Data/neuron_morphologies/Zebrafish/aligned_040120/test_NBLAST_labels.csv"
@@ -44,7 +46,7 @@ for file in os.listdir(dir_obj):
             node_atbs[idx, 0] = node[1]['X']
             node_atbs[idx, 1] = node[1]['Y']
             node_atbs[idx, 2] = node[1]['Z']
-            node_atbs[idx, 1] = node[1]['diam']
+            node_atbs[idx, 3] = node[1]['diam']
         
         
         # Create the DGL graph with the node attributes
@@ -52,9 +54,18 @@ for file in os.listdir(dir_obj):
         dgl_graph.from_networkx(nx_graph)
         dgl_graph.ndata['data'] = tf.convert_to_tensor(node_atbs, 
                                                        dtype=tf.float32)
+        
+        
         graph_list.append(dgl_graph)
         lbl_list.append(lbls_df.loc[filename,"nblast_cluster"])
         name_list.append(filename)
         
 combined_list = list(zip(name_list, graph_list, lbl_list))
 #%%
+# Not sure where they get g from the the classifier tutorial, but is likely not 
+# the same way is in the GCN tensorflow tutorial since they only operate on one
+# graph to get all the classifications...
+
+model = GCN()
+
+
