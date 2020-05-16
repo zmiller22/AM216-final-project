@@ -50,7 +50,9 @@ for file in os.listdir(dir_obj):
             node_atbs[idx, 1] = node[1]['Y']
             node_atbs[idx, 2] = node[1]['Z']
             node_atbs[idx, 3] = node[1]['diam']
-        
+            
+        # Add "self" edges so each node will be included in its own convolution
+        nx_graph.add_edges_from(zip(nx_graph.nodes(), nx_graph.nodes()))
         
         # Create the DGL graph with the node attributes
         dgl_graph = dgl.DGLGraph()
@@ -87,7 +89,7 @@ model = GCN(4, 32, 10)
 loss_func = tf.keras.losses.CategoricalCrossentropy(from_logits=True)
 optimizer = tf.keras.optimizers.Adam(learning_rate=0.001)
 EPOCHS = 20
-PATIENCE = 3
+PATIENCE = 2
 
 train_loss_list = []
 val_loss_list = []
@@ -116,7 +118,7 @@ for epoch in range(EPOCHS):
     print('Epoch {}, total validation loss {:.4f}'.format(epoch, epoch_val_loss))
     val_loss_list.append(epoch_val_loss)
     if epoch >= PATIENCE:
-        if min(val_loss_list[epoch-PATIENCE:])<epoch_val_loss:
+        if max(val_loss_list[epoch-PATIENCE:])<epoch_val_loss:
             print('Training stopped on epoch {}'.format(epoch))
             break
     
@@ -144,7 +146,7 @@ num_correct = results[results==2].shape[0]
 total_num = len(test_data)
 acc = num_correct/total_num
 
-print("Test loss was {} for {:.4f} percent accuracy".format(test_loss, acc))
+print("Test loss was {:.4f} for {:.2f} percent accuracy".format(test_loss, 100*acc))
     
 
     
