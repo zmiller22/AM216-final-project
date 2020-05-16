@@ -12,19 +12,14 @@ from tensorflow.keras import layers
 from dgl.nn.tensorflow import GraphConv, AvgPooling
 
 class GCN(tf.keras.Model):
-    def __init__(self,
-                    in_feats,
-                    n_hidden,
-                    n_classes,
-                    n_layers,
-                    activation,
-                    dropout):
+    def __init__(self, in_dim, hidden_dim, n_classes):
         
         super(GCN, self).__init__()
         
-        self.conv1 = GraphConv(in_feats, n_hidden, activation=tf.nn.relu)
-        self.conv2 = GraphConv(n_hidden, n_hidden, activation=tf.nn.relu)
-        self.classify = layers.Dense(n_classes, input_shape=(n_hidden,))
+        self.conv1 = GraphConv(in_dim, hidden_dim, activation=tf.nn.leaky_relu)
+        self.conv2 = GraphConv(hidden_dim, hidden_dim, activation=tf.nn.leaky_relu)
+        self.dense = layers.Dense(n_classes, input_shape=(hidden_dim,))
+        #self.classify = layers.Softmax()
         
 
     # Note to self, this is a predefined method in the keras Model class, and 
@@ -38,7 +33,7 @@ class GCN(tf.keras.Model):
         are passed along properly (the tutorial for batching has no such attributes)"""
         
         # Convolve over the node attributes
-        h = g.ndata
+        h = g.ndata['data']
         h = self.conv1(g,h)
         h = self.conv2(g,h)
         
@@ -49,10 +44,11 @@ class GCN(tf.keras.Model):
         hg = dgl.mean_nodes(g, 'h')
         
         # Put the average graph attribute tensor through the final dense layer
-        # to get the classification result
-        output = self.classify(hg)
+        # and get the classification result with softmax
+        hg = self.dense(hg)
+        #output = self.classify(hg)
         
-        return output
+        return hg
 
 
 
